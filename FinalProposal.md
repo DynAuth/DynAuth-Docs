@@ -30,4 +30,5 @@ The web service API server provides the interface that websites will use to requ
 ### Backend API Manager
 The backend API manager will provide the interface for adding and removing API access to the client and web service APIs. This is an administrative convenience rather than a necessity, since the tasks it will perform can also be performed by loading the GeoAuth system packages and directly manipulating objects there.
 
-## ...
+## Development Responsibilities
+Development work will be divided to cater to each member's skill set and desired learning outcomes. 
