@@ -1,0 +1,93 @@
+% !TEX TS-program = xelatex
+% !TEX encoding = UTF-8
+
+% This is a simple template for a XeLaTeX document using the "article" class,
+% with the fontspec package to easily select fonts.
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage{fontspec} % Font selection for XeLaTeX; see fontspec.pdf for documentation
+\defaultfontfeatures{Mapping=tex-text} % to support TeX conventions like ``---''
+\usepackage{xunicode} % Unicode support for LaTeX character names (accents, European chars, etc)
+\usepackage{xltxtra} % Extra customizations for XeLaTeX
+
+\setmainfont{Adobe Caslon Pro} % set the main body font (\textrm), assumes Charis SIL is installed
+%\setsansfont{Deja Vu Sans}
+%\setmonofont{Deja Vu Mono}
+
+% other LaTeX packages.....
+\usepackage{geometry} % See geometry.pdf to learn the layout options. There are lots.
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+%\usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+\title{GeoAuth Design Document}
+\author{Jacob Okamoto, Andrew From, Jason Carter, Christian Gerrard}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+\textit{The Execution Plan is at the end of this document}
+
+\section{Introduction}
+This is the design document for GeoAuth, a location-based authentication service. Its objective is to provide a strong identity verification service using dynamic location data, instead of using traditional, static data such as biometrics (i.e., fingerprint and iris scans), which can be simply integrated into websites' authentication mechanisms as an additional authentication factor.
+
+\section{Purpose}
+GeoAuth seeks to provide a more flexible and less sensitive alternative to traditional authentication strengthening techniques employed by websites to validate identity. Due to recent high-profile account compromises at major websites such as Twitter, websites have begun to implement multi-factor authentication schemes, which follow the principle of ``something you have and something you know.''
+
+\subsection{Existing solutions}
+Traditional multi-factor authentication systems have traditionally relied upon keyfob-style systems, such as those from RSA or SafeNet. These have the disadvantage of requiring that users carry with them the device that produces their authentication codes. They have also been subjected recently to increased scrutiny due to security breaches at RSA, which may have potentially exposed all of RSA two-factor customers' systems.
+
+Recently, some sites have begun implementation of their own multi-factor authentication schemes, often taking advantage of the ubiquity of cellular phones. The largest-scale example of this trend is Google, whose multi-factor authentication scheme sends six-digit numeric codes to a user's phone when they login to their Google account from an unknown device. They are then presented with the option of ``remembering'' the device, which drops the requirement that they type in a code when logging in from that device.
+
+\subsection{GeoAuth's solution}
+GeoAuth seeks to provide an alternative means of providing multi-factor authentication. Location-aware smartphones are quickly becoming commonplace; combining GPS and Wi-Fi scanning, they can pinpoint their location to extremely accurately. This highly accurate location information is what GeoAuth seeks to exploit. By collecting a user's location over time, and combining that with user-created location names, it is possible to construct reasonable challenges which would require an attacker to know both the user's location at the time the challenge was created and how the user named that location.
+
+\subsubsection{Advantages over existing solutions}
+GeoAuth's advantages over existing solutions differ for each existing solution. Compared against keyfob-based systems, it removes the requirement that the user carry the relatively fragile keyfob around with them (not carrying the keyfob defeats the purpose of ``something you have''). Compared against Google-like authentication schemes, GeoAuth has the user send authentication information (location data) to the GeoAuth service, instead of sending authentication information to the user, helping reduce the potential impact if a user's smartphone is stolen.
+
+\subsubsection{Disadvantages over existing solutions}
+GeoAuth's primary disadvantages are its reliance on a relatively diverse set of location data for effective generation of queries, and the potential ability for attackers to ``guess'' answers to queries. The first may be solvable through examination of the kinds of queries which can be produced, which may yield more effective techniques for secure query generation. The second is harder prevent, as it can be caused by users doing two things: first, following almost invariant location patterns over time (i.e., leaving for work at 8 A.M., driving to pickup children at 3:30 P.M., and going home for the remainder of the day, every weekday); second, choosing extremely predictable location names, such as ``home,'' ``work,'' or ``school''. The former may be mitigated by more extensive location analysis looking for anomalous behavior; the latter by encouraging varied location naming.
+
+\section{Use Case}
+GeoAuth is being designed to be used as a secondary authentication factor in multi-factor authentication systems; that is, it is to be used to strengthen identifying information such as passwords or biometrics. Because location, while private in a sense, is necessarily to a degree public information (that is, your location is often known to other people, such as family, friends, or coworkers), we believe that it cannot be used as a standalone authentication factor. Websites wishing to use GeoAuth will use GeoAuth's website API (detailed in section **TODO**) to request location challenges which may be presented to users as part of their authentication workflow, and to validate the responses users provide. They will also be able to redirect users to register their devices with GeoAuth and connect them to the service.
+
+\section{Architecture}
+GeoAuth consists of four primary components. The first is the mobile client, which runs on users' smartphones and uploads location and naming data to the GeoAuth service. The second is the device API server, which services mobile clients' upload requests, performing verification of the device's registration status and storing that location information to the server. The third is the website API and interface server, which is responsible for receiving websites' requests for challenges, producing the challenge/response pages, and returning the user to the website when they have successfully (or unsuccessfully) authenticated. The fourth is the interface for handling user registrations, device management, API access, and other administrative functions.
+
+\subsection{Mobile Client}
+The mobile client is the most important part of GeoAuth. They are responsible for collecting all of the location data and names which GeoAuth uses to construct queries.
+
+Its primary task, location data collection, will be achieved through the use of a long-running background service, which will periodically request the device's current location and send it to GeoAuth. The secondary task, location naming, will be performed by notifying the user that they should name a location if they have spent a substantial amount of time in the same place, and it will be aware of existing named locations so as to prevent duplicate or overlapping regions.
+
+The exact implementation will be platform specific, and the fullness of the implementation will take into account each platform's limitations. Clients will be produced for all major platforms (Google Android, Apple iOS, and Microsoft Windows Phone).
+
+\subsection{Device API server}
+The device API server is responsible for receiving location updates and location names from mobile clients and storing that data in GeoAuth's backend database. It is also responsible for servicing device registration requests. This API will be used over HTTP and will conform to REST concepts; the details of the API are located in the ``Device API'' document.
+
+\subsection{Website API server}
+The website API server is responsible for receiving websites' requests for authentication challenges, providing challenge tokens which websites can use to redirect their users to the challenge presentation system, presenting the challenge and validating its response, and sending the outcome of the challenge back to the website. It is also responsible for providing websites with appropriate binding information to connect the website's identity system to GeoAuth's; the details of the API are located in the ``Device API'' document.
+
+\subsection{Interface server}
+The interface server is responsible for providing interfaces for users to manage their devices and accounts and for websites to manage their API access, as well as any administrative overhead.
+
+\subsection{Authentication workflow}
+The following describes the authentication process using GeoAuth:
+
+\begin{enumerate}
+\item The website requiring authentication sends a request to GeoAuth's website API for a challenge request identifier and a challenge response identifier.
+\item The website sends its API key and the GeoAuth identity it is authenticating, and receives a challenge request identifier from the GeoAuth server.
+\item The website then redirects the user to GeoAuth's challenge interface, telling the user's browser to use the challenge request identifier.
+\item GeoAuth's challenge interface validates the challenge request identifier, generates a challenge for the user, and presents the challenge to the user.
+\item GeoAuth validates the user's response to the challenge.
+\item GeoAuth redirects the user back to the website, sending the challenge response identifier in the redirect.
+\item The website validates the response identifier, and checks the validation outcome using GeoAuth's website API.
+\item The website handles a success or failure.
+\end{enumerate}
+
+Note that the website handling is not explicit. Because of the nature of GeoAuth's challenges, a website may choose to use a failed validation as simply a ``this is suspicious'' flag, and send notification to the user (similar to Facebook's device identification system); or it may choose to deny access.
+
+\end{document}
