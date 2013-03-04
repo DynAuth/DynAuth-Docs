@@ -90,4 +90,35 @@ The following describes the authentication process using GeoAuth:
 
 Note that the website handling is not explicit. Because of the nature of GeoAuth's challenges, a website may choose to use a failed validation as simply a ``this is suspicious'' flag, and send notification to the user (similar to Facebook's device identification system); or it may choose to deny access.
 
+\subsection{Authentication challenges}
+Authentication challenges for the initial prototype will be generated in the form ``where were you at \{time\} on \{day\}, \{date\}.'' The answers to these responses will be based on the named locations provided by the user. While these are relatively simplistic challenges, constructing more complex challenges will require data analysis to determine what sorts of challenges are possible.
+
+\subsection{Platforms \& technologies}
+GeoAuth's APIs are based on HTTP with REST conventions. This greatly reduces the complexity of implementation, especially with regards to security, since secure HTTP communication over TLS is fully supported on all mobile and server platforms which GeoAuth will use. It also eliminates potential issues designing communications protocols which might otherwise arise using binary protocols over TCP or UDP.
+
+Mobile platforms will use the appropriate technologies for each platform: the Android mobile client will be written in Java; the iPhone client will be written in Objective-C; and the Windows Phone 7 client will be written in C\#. Appropriate libraries will be used as necessary to facilitate well-written code.
+
+The servers will be written in Python on the Flask framework. This provides a minimalistic but powerful platform to use as much shared code as possible between the three server side components. A suite of tests will be provided to validate the functionality of the server side, and a test-mode server with fixed data will be provided to allow for simple mobile client testing.
+
+\section{API references}
+API references for both the device and website APIs are provided with this document. They are not quite complete as the exact scope of the APIs for the prototype is still in flux.
+
+\section{Execution plan}
+\subsection{Functional objectives}
+We anticipate completion of a functional prototype to be well within our capabilities. This prototype, at the very least, will implement the core functionalities of:
+
+\begin{itemize}
+\item Device location updates and location naming, with interfaces to each
+\item Persistent storage of location updates and processing of relationships between location updates and named locations
+\item Generation of appropriate authentication challenges
+\item Fully functional website authentication flow implemented in the website API and demonstrated with a simple test website
+
+\end{itemize}
+
+\subsection{Division of work}
+Work will be divided as much as possible according to each member's educational interests, goals, and resources. Andrew From will be leading development of the Windows Phone client; Jason Carter will be leading development of the Android client. Christian Gerrard will be supporting the development of both of those clients. Jacob Okamoto will be responsible for the iPhone client and the server-side APIs. The server side will share a substantial amount of code; in addition, this project is part of Jacob's research studies and therefore he will be taking some responsibility above and beyond as a result. Andrew, Christian, and Jason will also be responsible for checking that their client APIs conform to the final API specifications we agree upon.
+
+\subsection{Source code}
+All source code will be stored and version controlled on the University of Minnesota's GitHub Enterprise server at \texttt{<https://github.umn.edu/>}. All documentation will be version controlled and stored there as necessary as well.
+
 \end{document}
