@@ -65,6 +65,13 @@ Its primary task, location data collection, will be achieved through the use of 
 
 The exact implementation will be platform specific, and the fullness of the implementation will take into account each platform's limitations. Clients will be produced for all major platforms (Google Android, Apple iOS, and Microsoft Windows Phone).
 
+\subsubsection{Apple iOS Client}
+The Apple iOS client (authored by Jacob Okamoto) implements the core background location tracking capabilities of the client and the device registration interface. On launch, it presents an interface for registering the device with the server; if unregistered, it will use a testing key until registration is completed. The device identifier returned by the server during registration is stored using the \texttt{NSUserDefaults} capabilities of iOS, and the stored key is used for any subsequent calls. Location updates are performed when movements greater than 100 meters are detected; the resolution of the location measurements is set to the highest possible level to allow for Wi-Fi based positioning.
+
+\subsubsection{Android Client}
+
+\subsubsection{Windows Phone Client}
+
 \subsection{Device API server}
 The device API server is responsible for receiving location updates and location names from mobile clients and storing that data in GeoAuth's backend database. It is also responsible for servicing device registration requests. This API will be used over HTTP and will conform to REST concepts; the details of the API are located in the ``Device API'' document.
 
