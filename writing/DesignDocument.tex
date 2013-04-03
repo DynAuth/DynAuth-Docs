@@ -66,32 +66,44 @@ Its primary task, location data collection, will be achieved through the use of 
 The exact implementation will be platform specific, and the fullness of the implementation will take into account each platform's limitations. Clients will be produced for all major platforms (Google Android, Apple iOS, and Microsoft Windows Phone).
 
 \subsubsection{Apple iOS Client}
-The Apple iOS client (authored by Jacob Okamoto) implements the core background location tracking capabilities of the client and the device registration interface. On launch, it presents an interface for registering the device with the server; if unregistered, it will use a testing key until registration is completed. The device identifier returned by the server during registration is stored using the \texttt{NSUserDefaults} capabilities of iOS, and the stored key is used for any subsequent calls. Location updates are performed when movements greater than 100 meters are detected; the resolution of the location measurements is set to the highest possible level to allow for Wi-Fi based positioning.
+The Apple iOS client (authored by Jacob Okamoto) implements the core background location tracking capabilities of the client and the device registration interface. On launch, it presents an interface for registering the device with the server; if unregistered, it will use a testing key until registration is completed. The device identifier returned by the server during registration is stored using the \texttt{NSUserDefaults} capabilities of iOS, and the stored key is used for any subsequent calls. Location updates are performed when movements greater than 100 meters are detected; the resolution of the location measurements is set to the highest possible level to allow for Wi-Fi based positioning. Future changes may include using the iOS Significant Location Change service to decrease power consumption, and integration of the configuration interface into the iOS settings menu.
+
+Source code is available at \textit{<https://github.umn.edu/CSCI5221-G06/geoauth-client-ios>}.
 
 \subsubsection{Android Client}
+There are two Android clients (one authored by Christian Gerrard, the other by Jason Carter).
+
+\textbf{Gerrard Client:} This Android client implements the same set of functionality as the iOS client. It also implements development functionality to request device keys to register the device (this functionality would be handled server side in production). Due to issues with Android's background services engine, it will send placeholder values when backgrounded.
+
+Source code is available at \textit{<https://github.umn.edu/CSCI5221-G06/geoauth-client-android>}.
+
+\textbf{Carter Client:} This Android client supports interfacing with the device API; however, it has not yet implemented any further functionality at the present.
 
 \subsubsection{Windows Phone Client}
+The Windows Phone client was written by Andrew From. A local database stores location region information. Currently the database is populated whenever a region is successfully added, and is checked to prevent duplicate location requests of the same name. A future enhancement would be to query the local database and display if the user is in defined region. A UI to manage regions could also be created.
+
+On location change it checks if the GPS distance (3200 meters from last check in) or the GPS last check in time (15 minutes since check in) have been exceeded, if so it will automatically checkin to the server. There is currently no UI for a user to modify these settings, but it could be created in the future.
+
+Source code is available at \texttt{<https://github.umn.edu/CSCI5221-G06/geoauth-client-wp7>}.
 
 \subsection{Device API server}
 The device API server is responsible for receiving location updates and location names from mobile clients and storing that data in GeoAuth's backend database. It is also responsible for servicing device registration requests. This API will be used over HTTP and will conform to REST concepts; the details of the API are located in the ``Device API'' document.
 
 \subsection{Website API server}
-The website API server is responsible for receiving websites' requests for authentication challenges, providing challenge tokens which websites can use to redirect their users to the challenge presentation system, presenting the challenge and validating its response, and sending the outcome of the challenge back to the website. It is also responsible for providing websites with appropriate binding information to connect the website's identity system to GeoAuth's; the details of the API are located in the ``Device API'' document.
+The website API server is responsible for receiving websites' requests for authentication challenges, providing challenge tokens which websites can use to redirect their users to the challenge presentation system, presenting the challenge and validating its response, and sending the outcome of the challenge back to the website. It is also responsible for providing websites with appropriate binding information to connect the website's identity system to GeoAuth's; the details of the API are located in the ``Service'' document.
 
-\subsection{Interface server}
-The interface server is responsible for providing interfaces for users to manage their devices and accounts and for websites to manage their API access, as well as any administrative overhead.
+\subsection{Data View server}
+The data view server provides read-only access to the data stored on the server for development purposes. In future it will support management and user self-service functionality.
 
 \subsection{Authentication workflow}
 The following describes the authentication process using GeoAuth:
 
 \begin{enumerate}
 \item The website requiring authentication sends a request to GeoAuth's website API for a challenge request identifier and a challenge response identifier.
-\item The website sends its API key and the GeoAuth identity it is authenticating, and receives a challenge request identifier from the GeoAuth server.
-\item The website then redirects the user to GeoAuth's challenge interface, telling the user's browser to use the challenge request identifier.
-\item GeoAuth's challenge interface validates the challenge request identifier, generates a challenge for the user, and presents the challenge to the user.
-\item GeoAuth validates the user's response to the challenge.
-\item GeoAuth redirects the user back to the website, sending the challenge response identifier in the redirect.
-\item The website validates the response identifier, and checks the validation outcome using GeoAuth's website API.
+\item The website sends its API key and the GeoAuth identity it is authenticating, and receives a challenge token from the GeoAuth server
+\item The website presents the challenge to the user and collects their response
+\item The website sends the response value and the challenge token to the GeoAuth server
+\item The website receives a \texttt{200} with the content ``success'' or a \texttt{403} with the content ``failure''
 \item The website handles a success or failure.
 \end{enumerate}
 
@@ -115,15 +127,29 @@ API references for both the device and website APIs are provided with this docum
 We anticipate completion of a functional prototype to be well within our capabilities. This prototype, at the very least, will implement the core functionalities of:
 
 \begin{itemize}
-\item Device location updates and location naming, with interfaces to each
-\item Persistent storage of location updates and processing of relationships between location updates and named locations
-\item Generation of appropriate authentication challenges
-\item Fully functional website authentication flow implemented in the website API and demonstrated with a simple test website
-
+\item Device location updates and location naming, with interfaces to each: \textbf{COMPLETE}
+\item Persistent storage of location updates and processing of relationships between location updates and named locations: \textbf{PARTIAL}
+\item Generation of appropriate authentication challenges: \textbf{COMPLETE}
+\item Fully functional website authentication flow implemented in the website API and demonstrated with a simple test website: \textbf{PARTIAL}
 \end{itemize}
 
+\subsubsection{Completion Notes}
+Device location update functionality is complete across all platforms. Region support is as complete as possible, but will require further exploration of methods for determining when a new region should be created.
+
+Persistent storage of updates and regions is fully supported. Relationship processing will also require further exploration (research topic).
+
+Generation of authentication challenges is complete at a basic level.
+
+Authentication flow is implemented in the API and demonstrated in the test framework. There is no demo website as of yet.
+
 \subsection{Division of work}
-Work will be divided as much as possible according to each member's educational interests, goals, and resources. Andrew From will be leading development of the Windows Phone client; Jason Carter will be leading development of the Android client. Christian Gerrard will be supporting the development of both of those clients. Jacob Okamoto will be responsible for the iPhone client and the server-side APIs. The server side will share a substantial amount of code; in addition, this project is part of Jacob's research studies and therefore he will be taking some responsibility above and beyond as a result. Andrew, Christian, and Jason will also be responsible for checking that their client APIs conform to the final API specifications we agree upon.
+\begin{itemize}
+\item Andrew From implemented the Windows Phone 7 client
+\item Christian Gerrard implemented the primary Android client
+\item Jason Carter implemented a partially complete Android client (API interface, but no location support)
+\item Jacob Okamoto implemented the API servers and tests, as well as the Apple iOS client.
+\item The design document was initially written by Jacob Okamoto; the information regarding the implementation of individual clients in the final document was provided by each client's author and tweaked to match the writing style of the existing document.
+\end{itemize}
 
 \subsection{Source code}
 All source code will be stored and version controlled on the University of Minnesota's GitHub Enterprise server at \texttt{<https://github.umn.edu/>}. All documentation will be version controlled and stored there as necessary as well.
